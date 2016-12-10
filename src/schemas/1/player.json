@@ -68,7 +68,14 @@
     },
     "bomb": {
       "type": "array",
-      "items": { "$ref": "#/definitions/playerArrayItem/bool" }
+      "items": {
+        "anyOf": [{
+          "$ref": "#/definitions/playerArrayItem/bool"
+        }, {
+          "description": "New format powerup value, see #77.",
+          "type": "integer"
+        }]
+      }
     },
     "dead": {
       "type": "array",
@@ -85,14 +92,13 @@
     "flag": {
       "type": "array",
       "items": {
-        "anyOf": [
-          {
-            "title": "Flag Value.",
-            "description": "The type of flag held by a player in a specific frame, or null if there was no flag held.",
-            "type": ["number", "string"]
-          },
-          { "$ref": "#/definitions/playerArrayItem" }
-        ]
+        "anyOf": [{
+          "title": "Flag Value.",
+          "description": "The type of flag held by a player in a specific frame, or null if there was no flag held.",
+          "type": ["number", "string"]
+        }, {
+          "$ref": "#/definitions/playerArrayItem"
+        }]
       }
     },
     "flair": {
@@ -126,19 +132,25 @@
         "description": "old format that didn't have an array",
         "type": "string"
       }, {
-          "type": "array",
-          "items": {
-            "anyOf": [
-              { "type": "string" },
-              { "$ref": "#/definitions/playerArrayItem" }
-            ]
-          }
+        "type": "array",
+        "items": {
+          "anyOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/playerArrayItem" }
+          ]
         }
-      ]
+      }]
     },
     "tagpro": {
       "type": "array",
-      "items": { "$ref": "#/definitions/playerArrayItem/bool" }
+      "items": {
+        "anyOf": [{
+          "$ref": "#/definitions/playerArrayItem/bool"
+        }, { 
+          "description": "New format powerup value. See #77.",
+          "type": "integer"
+        }]
+      }
     },
     "team": {
       "type": "array",

@@ -33,55 +33,50 @@
       "oneOf": [{
           "type": "object",
           "properties": {
+            "c": {
+              "description": "Optional text color.",
+              "type": "string"
+            },
             "from": {
               "type": ["string", "integer", "null"]
+            },
+            "message": { "type": "string" },
+            "mod": {
+              "description": "Optional mod parameter.",
+              "type": "boolean"
             },
             "removeAt": {
               "description": "The time at which to remove the chat, 30s after it was sent. May not be present if replay was made while 3.0 bug was present.",
               "$ref": "#/definitions/epochTime"
             },
+            "shake": { "type": "boolean" },
             "to": {
               "id": "to",
               "type": "string",
               "enum": ["all", "team", "group"]
-            },
-            "message": { "type": "string" },
-            "c": {
-              "description": "Optional text color.",
-              "type": "string"
-            },
-            "mod": {
-              "description": "Optional mod parameter.",
-              "type": "boolean"
             }
           },
           "required": [
             "from",
-            "to",
-            "message"
+            "message",
+            "to"
           ],
           "additionalProperties": false
         }, {
           "type": "object",
           "description": "New chat format introduced to fix #104",
           "properties": {
-            "from": {
-              "type": ["string", "integer", "null"]
+            "auth": {
+              "type": "boolean"
             },
-            "removeAt": {
-              "description": "The time at which to remove the chat, 30s after it was sent. May not be present if replay was made while 3.0 bug was present.",
-              "$ref": "#/definitions/epochTime"
-            },
-            "to": {
-              "id": "to",
-              "type": "string",
-              "enum": ["all", "team", "group"]
-            },
-            "message": { "type": "string" },
             "c": {
               "description": "Optional text color.",
               "type": "string"
             },
+            "from": {
+              "type": ["string", "integer", "null"]
+            },
+            "message": { "type": "string" },
             "mod": {
               "description": "Optional mod parameter.",
               "type": "boolean"
@@ -89,20 +84,27 @@
             "name": {
               "type": "string"
             },
-            "auth": {
-              "type": "boolean"
+            "removeAt": {
+              "description": "The time at which to remove the chat, 30s after it was sent. May not be present if replay was made while 3.0 bug was present.",
+              "$ref": "#/definitions/epochTime"
             },
+            "shake": { "type": "boolean" },
             "team": {
               "$ref": "definitions.json#/team"
+            },
+            "to": {
+              "id": "to",
+              "type": "string",
+              "enum": ["all", "team", "group"]
             }
           },
           "required": [
+            "auth",
             "from",
-            "to",
             "message",
             "name",
-            "auth",
-            "team"
+            "team",
+            "to"
           ],
           "additionalProperties": false
         },

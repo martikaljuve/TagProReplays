@@ -37,9 +37,45 @@ describe('Version 1 replay validation', function() {
     });
   });
 
-  it('should accept a replay with old-format powerup identifiers');
+  describe('should accept old-format powerup identifiers', function() {
+    it('for tagpro', function() {
+      let path = getReplay(1, 'old-tagproDATE1481331402058');
+      let file = fs.readFileSync(path, { encoding: 'utf-8' });
+      return validate.validate(JSON.parse(file)).then((result) => {
+        expect(result).to.not.have.any.keys('code', 'reason');
+        expect(result.failed).to.be.false;
+      });
+    });
 
-  it('should accept a replay with new-format powerup identifiers');
+    it('for rolling bomb', function() {
+      let path = getReplay(1, 'old-bombDATE1481331557109');
+      let file = fs.readFileSync(path, { encoding: 'utf-8' });
+      return validate.validate(JSON.parse(file)).then((result) => {
+        expect(result).to.not.have.any.keys('code', 'reason');
+        expect(result.failed).to.be.false;
+      });
+    });
+  });
+
+  describe('should accept new-format powerup identifiers', function() {
+    it('for tagpro', function() {
+      let path = getReplay(1, 'new-tagproDATE1481329503370');
+      let file = fs.readFileSync(path, { encoding: 'utf-8' });
+      return validate.validate(JSON.parse(file)).then((result) => {
+        expect(result).to.not.have.any.keys('code', 'reason');
+        expect(result.failed).to.be.false;
+      });
+    });
+
+    it('for rolling bomb', function() {
+      let path = getReplay(1, 'new-bombDATE1481330124869');
+      let file = fs.readFileSync(path, { encoding: 'utf-8' });
+      return validate.validate(JSON.parse(file)).then((result) => {
+        expect(result).to.not.have.any.keys('code', 'reason');
+        expect(result.failed).to.be.false;
+      });
+    });
+  });
 
   it('should accept a replay with old-format chats', function() {
     let path = getReplay(1, 'replays1414027897934');
@@ -119,13 +155,25 @@ describe('Version 1 replay validation', function() {
     });
   });
 
-  it('should reject a replay with frame arrays of different lengths', function() {
-    let replay = clone(template);
-    replay.clock.pop();
-    return validate.validate(replay).then((result) => {
-      expect(result).to.have.all.keys('code', 'failed', 'reason');
-      expect(result.failed).to.be.true;
-      expect(result.reason).to.contain('length');
+  describe('checks frame arrays in the main replay data', function() {
+    it('for game score', function() {
+      let replay = clone(template);
+      replay.score.pop();
+      return validate.validate(replay).then((result) => {
+        expect(result).to.have.all.keys('code', 'failed', 'reason');
+        expect(result.failed).to.be.true;
+        expect(result.reason).to.contain('length');
+      });
+    });
+
+    it('for floor tiles', function() {
+      let replay = clone(template);
+      replay.floorTiles[0].value.pop();
+      return validate.validate(replay).then((result) => {
+        expect(result).to.have.all.keys('code', 'failed', 'reason');
+        expect(result.failed).to.be.true;
+        expect(result.reason).to.contain('length');
+      });
     });
   });
 

@@ -50,6 +50,16 @@ const semantic_validator = {
       }
     }
 
+    for (let i = 0; i < replay.floorTiles.length; i++) {
+      let tile = replay.floorTiles[i];
+      let val_len = tile.value.length;
+      if (val_len !== len) {
+        this.errors =
+          `replay.floorTiles[${i}].value has a different length (${val_len}) than the clock (${len})`;
+        return false;
+      }
+    }
+
     for (let key of players) {
       let player = replay[key];
       for (let prop of player_props) {
