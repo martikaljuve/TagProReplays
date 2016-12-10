@@ -1,4 +1,4 @@
-const Ajv = require('ajv');
+const Ajv = require('./ajv-proxy');
 
 // Schema loading strategy, override in tests.
 exports.load_schema = (target) => {
