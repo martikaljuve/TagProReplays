@@ -1,14 +1,17 @@
 /*eslint no-sync: "off" */
-const browserify = require('browserify'),
+const Ajv        = require('ajv'),
+      browserify = require('browserify'),
       concat     = require('concat-stream'),
       duration   = require('gulp-duration'),
       es         = require('event-stream'),
+      fs         = require('fs'),
       glob       = require('glob'),
       gulp       = require('gulp'),
       gutil      = require('gulp-util'),
       jeditor    = require('gulp-json-editor'),
       jsonfile   = require('jsonfile'),
       notify     = require('gulp-notify'),
+      pack       = require('ajv-pack'),
       plumber    = require('gulp-plumber'),
       rename     = require('gulp-rename'),
       rimraf     = require('rimraf'),
@@ -140,6 +143,78 @@ function watchifyFile(src, dest) {
   b.on('log', gutil.log);
   return bundle();
 }
+
+// Schema validator packaging.
+function packageValidator(version) {
+
+
+}
+
+const schemas = {
+  '1': {
+    base: 'schemas/1',
+    main: 'main.json',
+    //deps: ['definitions.json', 'player.json']
+    deps: ['definitions.json']
+  }
+};
+
+function load_schema(target) {
+  let file = fs.readFileSync(`src/${target}`, { encoding: 'utf-8' });
+  return parseJSON(file);
+}
+
+function parseJSON(json) {
+  return new Promise((resolve, reject) => {
+    try {
+      let result = JSON.parse(json);
+      resolve(result);
+    } catch(e) {
+      reject(e);
+    }
+  });
+}
+
+function loadSchema(version) {
+  if (!schemas[version])
+    return Promise.reject(new Error(`Schemas for version ${version} not found`));
+  let version_schema = schemas[version];
+  let result = {
+    main: null,
+    deps: {}
+  };
+  let grabs = [];
+  // Turn it into main: data, deps: {name: data}
+  grabs.push(load_schema(`${version_schema.base}/${version_schema.main}`).then((grabbed) => {
+    result.main = grabbed;
+  }));
+  grabs.push(...version_schema.deps.map((name) => {
+    return load_schema(`${version_schema.base}/${name}`).then((grabbed) => {
+      result.deps[name] = grabbed;
+    });
+  }));
+  return Promise.all(grabs).then(() => {
+    return result;
+  });
+}
+
+// Compiles validators to source directory.
+gulp.task('compile-validator', () => {
+  Object.keys(schemas).map((key) => {
+    return loadSchema(key).then((schemas) => {
+      let ajv = new Ajv({ sourceCode: true });
+      for (let name in schemas.deps) {
+        ajv.addSchema(schemas.deps[name], name);
+      }
+      let validate = ajv.compile(schemas.main);
+      if (!validate) {
+        throw new Error(`${key} schema not valid: ${ajv.errors}`);
+      }
+      let moduleCode = pack(ajv, validate);
+      fs.writeFileSync(`src/js/modules/validators/validator.${key}.js`, moduleCode);
+    });
+  });
+});
 
 gulp.task('clean', (cb) => {
   rimraf(dirs.dev, cb);

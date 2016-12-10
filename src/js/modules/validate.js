@@ -16,6 +16,10 @@ const schemas = {
   }
 };
 
+const schema_validator = {
+  '1': require('./validators/validator.1.js')
+};
+
 const semantic_validator = {
   '1': function(replay) {
     this.errors = null;
@@ -142,6 +146,35 @@ class Validator {
       });
     }
 
+    if (version in schema_validator) {
+      let validate = schema_validator[version];
+      let valid = validate(replay);
+      if (!valid) {
+        let text = validate.errors.map(err =>
+          `${data}${err.dataPath} ${err.message}`).join(',');
+        return Promise.resolve({
+          failed: true,
+          code: 'schema validation failure',
+          reason: text
+        });
+      }
+      if (version in semantic_validator) {
+        let valid = semantic_validator[version](replay);
+        if (!valid) {
+          return Promise.resolve({
+            failed: true,
+            code: 'semantic validation failure',
+            reason: semantic_validator.errors
+          });
+        }
+      }
+      return Promise.resolve({
+        failed: false
+      });
+    } else {
+      return Promise.reject(new Error(`No validator for version ${version} could be found`));
+    }
+    /*
     if (this.validators[version]) {
       let validator = this.validators[version];
       let valid = validator.validate(version, replay);
@@ -166,6 +199,7 @@ class Validator {
         failed: false
       });
     }
+    */
 
     return loadSchema(version).then((schemas) => {
       let ajv = new Ajv();

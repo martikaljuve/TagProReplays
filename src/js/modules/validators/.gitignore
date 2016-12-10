@@ -1,0 +1,3 @@
+# Target directory for compiled schema validators.
+*
+!.gitignore
