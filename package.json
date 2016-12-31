@@ -46,10 +46,12 @@
   "homepage": "https://github.com/chrahunt/TagProReplays#readme",
   "dependencies": {
     "ajv": "^4.9.2",
+    "bluebird": "^3.4.7",
     "bootstrap": "^3.3.7",
     "chrome-storage-promise": "^0.1.0",
     "debug": "^2.2.0",
     "dexie": "git://github.com/dfahlander/Dexie.js#v2.0.0-beta.4",
+    "ebml": "^2.2.0",
     "file-saver": "^1.3.3",
     "image-promise": "^4.0.1",
     "jquery": "^3.1.1",

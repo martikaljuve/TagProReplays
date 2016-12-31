@@ -1,8 +1,10 @@
 const logger = require('util/logger')('promise-ext');
+const bb = require('bluebird');
 
 /**
  * Promise extensions.
  */
+exports.Promisemap = bb.map;
 /**
  * Provide a progress callback to some bit of work wrapped
  * in a Promise.

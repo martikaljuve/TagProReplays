@@ -8,7 +8,7 @@ const Data = require('modules/data');
 const logger = require('util/logger')('background');
 const fs = require('util/filesystem');
 const get_renderer = require('modules/renderer');
-const {Progress} = require('util/promise-ext');
+const {Progress, Promisemap} = require('util/promise-ext');
 const Textures = require('modules/textures');
 const track = require('util/track');
 const {validate} = require('modules/validate');
@@ -57,6 +57,14 @@ function PromiseTimeout(callback, timeout=0) {
   });
 }
 
+function canvasToBlob(canvas, mimeType, qualityArgument) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      resolve(blob);
+    }, mimeType, qualityArgument);
+  });
+}
+
 /**
  * Renders replay.
  * 
@@ -84,21 +92,26 @@ function renderVideo(replay, id) {
       can.width = options.canvas_width;
       can.height = options.canvas_height;
       return get_renderer(can, replay, options);
-    }).then(function render(renderer, frame=0) {
-      for (; frame < frames; frame++) {
-        //logger.trace(`Rendering frame ${frame} of ${frames}`);
-        renderer.draw(frame);
-        encoder.add(context);
-        let amount_complete = frame / frames;
-        if (Math.floor(amount_complete / notification_freq) != portions_complete) {
-          portions_complete++;
-          progress(amount_complete);
-          // Slight delay to give our progress message time to propagate.
-          return PromiseTimeout(() => render(renderer, ++frame));
+    }).then((renderer) => {
+      function* range(len) {
+        for (let i = 0; i < len; i++) {
+          yield i;
         }
       }
-
-      let output = encoder.compile();
+      // Limit to concurrency 30 frames at a time.
+      return Promisemap(range(frames), (frame) => {
+        renderer.draw(frame);
+        return canvasToBlob(renderer.canvas, 'image/webp', 0.8).then((blob) => {
+          encoder.add(blob, frame);
+          let amount_complete = frame / frames;
+          if (Math.floor(amount_complete / notification_freq) != portions_complete) {
+            portions_complete++;
+            progress(amount_complete);
+          }
+        });
+      }, { concurrency: 10 })
+      .then(() => encoder.compile());
+    }).then((output) => {
       return Movies.save(id, output).then(() => {
         logger.debug('File saved.');
       }).catch((err) => {
@@ -106,6 +119,7 @@ function renderVideo(replay, id) {
         throw err;
       });
     });
+
     resolve(result);
   });
 }
